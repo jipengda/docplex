@@ -75,6 +75,94 @@ for i,j in arcs:
 # The reason this path [0,1,3,2,4,5] is valid or invalid depends on whether it matches time window constraint or not
 x[0,1] * distance[0][1] + x[(1,3)] * distance[1][3] + x[(3,2)] * distance[3][2] + x[(2,4)] * distance[2][4] + x[(4,5)] * distance[4][5] <= timeInfor[5][1]
 
+N = 4
+nodes = [i+1 for i in range(N)]
+sets={(a,b,c,d) for a in nodes for b in nodes for c in nodes for d in nodes if a!=b and b!=c and c!=d}
+
+//////SET
+int c = ...;
+range Customers = 1...c;
+int v = ...;
+range Vehicles = 1..v;
+int n = ...;
+range Nodes = 1..n;
+int t = ...;
+range Workdays = 1..t;
+int d = ...;
+range Drivers = 1..d;
+
+//////PARAMETER
+tuple timewindow{
+int e;
+int l;
+}
+int q[Nodes] =...;   //Demand at node i
+timewindow tw[Customers] =...; //Time windows of customers
+float pv[Vehicles] =...;
+float p[Customers] =...;
+float tvmax[Vehicles]=...;
+
+int delivery[Customers][Workdays]=...;
+int Q[Vehicles]=...;
+float cost[Customers][Customers]=...;
+float l[Customers]=...;
+float s[Customers]=...;
+
+int M = 100000;
+
+//////VARIABLE
+dvar boolean x[i in Customers][j in Customers][v in Vehicles];
+dvar boolean y[d in Drivers][v in Vehicles];
+dvar float+ r[d in Drivers][t in Workdays];
+dvar float+ u[i in Nodes][v in Vehicles][t in Workdays];
+dvar float+ T[i in Nodes];
+dvar float+ TV[v in Vehicles];
+dvar float+ b[i in Customers][v in Vehicles][t in Workdays];
+dvar float+ dentaT[v in Vehicles];
+dvar float+ dentae[i in Customers];
+dvar float+ dental[i in Customers];
+dvar float+ theta[j in Customers][v in Vehicles][t in Workdays];
+dvar float+ o[j in Customers][v in Vehicles][t in Workdays];
+dvar int+ D[Nodes];
+
+
+execute CPX_PARAM{
+    cplex.tilim = 120;
+    cplex.nodefileind = 3;
+}
+minimize sum(j in Customers, v in Vehicles)(cost[0][j]*x[0][j][v]) + sum(i in Customers, j in Customers:j>i)(cost[i][j]) + \
+pv[v]*dentaT[v in Vehicles]+sum(i in Nodes)(p[i]*(dentae[i]+dental[i]));
+# I hope I can really solve time constraint problem today
+subject to{
+    ct01: forall(i in Customers)
+          sum(j in Customers, v in Vehicles)(x[i][j][v]) == 1;
+          forall(k in Customers, v in Vehicles)
+          sum(i in Nodes)(x[i][k][v]) - sum(j in Nodes)(x[k][j][v]) == 0;
+    ct02: forall(v in Vehicles)
+          sum(i in Customers)(q[i])*sum(j in Nodes)(x[k][j][v])<=Q[v];
+    ct03: forall(i in Nodes, j in Nodes:j!=i)
+          b[i][v][t] + M*(1-y[i][v]) <= b[j][v][t];
+    ct04: forall(i in Nodes, j in Customers)
+          b[i][v][t] + M*(1-y[d][v]) >= tw[j].e;
+          forall(i in Nodes, j in Customers)
+          b[i][v][t] - M*(1-y[d][v]) <= tw[j].l;
+    ct05: forall(v in Vehicles)
+          dentaT[v] >= TV[v] - tvmax[v];
+    ct06: forall(i in Nodes, j in Nodes:i!=j)
+          D[j] >= D[i] + delivery[c][t] - Q[v]*(1-x[i][j][v]);
+          forall(i in Nodes)
+          delivery[c][t] <= D[i] <=Q[v];
+    ct07: forall(i in Nodes, j in Customers)
+          dentae[i] >= tw[j].e - T[i];
+    ct08: forall(i in Nodes, j in Customers)
+          dental[i] >= T[i] - tw[j].l;
+    ct09: forall(v in Vehicles)
+          sum(j in Nodes:j>0)(x[0][j][v]) == 1;
+          forall(v in Vehicles)
+          sum(i in Nodes: i>n+1)(x[i][n+1][v]) == 1;
+    ct10: forall(d in Drivers, v in Vehicles, t in Workdays, i in Customers)
+          r[d][t] >= u[n+1][v][t] - tw[i].e - M*(1-y[d][v]);
+}
 
 
 solution = mdl.solve(log_output = True)
