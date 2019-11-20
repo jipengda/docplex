@@ -1,8 +1,6 @@
 # I hope to dig in time constraint issue using cplex
 
-from docplex.mp.modle import Model
-import math
-
+from docplex.mp.model import Model
 # The wait time is really biggest trouble that blocks my way to dig in time constraint issue
 
  # You know, d[i] defines visiting order
@@ -22,11 +20,14 @@ N = 6
 nodes = [(j) for j in range(N)]
 arcs = [(i,j) for i in nodes for j in nodes if i != j]
 mdl = Model('Dual_ride')
-mdl.minimize(mdl.sum( (x[(i,j)] * distance[(i,j)]) for i,j in arcs )) #objective funtion
+x = mdl.binary_var_dict(arcs, name = 'x')
+d = mdl.continuous_var_dict(nodes, name = 'd')
+mdl.minimize(mdl.sum( (x[(i,j)] * distance[i][j]) for i,j in arcs )) #objective funtion
 for i,j in arcs:
     mdl.add_indicator(x[(i,j)], d[i] + 1 == d[j], name = 'visiting order')
 # I will inversely get index of d variable
-solution = mdl.solve(log_output = True)
+solution1 = mdl.solve(log_output = True)
+k = []
 for i in range(1, 6):
     for j in range(1, i):
         if d[j].solution_value == i:
@@ -42,3 +43,6 @@ for i in range(1,6):
         sum = sum + x( k[j-1],k[j] )*distance[ (k[j-1]) ][ (k[j]) ]
     mdl.add_constraint(sum <= timeInfor[ k[i] ][1])
 # Maybe I should take a test now? No, it is not time.
+solution2 = mdl.solve(log_output = True)
+
+# TypeError: list indices must be integers or slices, not tuple.
