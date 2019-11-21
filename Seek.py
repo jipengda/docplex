@@ -21,21 +21,18 @@ mdl = Model('Dual_ride')
 x = mdl.binary_var_dict(arcs, name = 'x')
 d = mdl.continuous_var_dict(nodes, name = 'd')
 mdl.minimize(mdl.sum( (x[(i,j)] * distance[i][j]) for i,j in arcs ))
+# all nodes need being visited
+for n in nodes:
+    if n!=0:
+        mdl.add_constraint(mdl.sum(x[(i,j)] for i,j in arcs if j==n)==1,ctname='in_%d'%n)# I have doubt about this
 for i,j in arcs:
     mdl.add_indicator(x[(i,j)], d[i] + 1 == d[j], name = 'visiting order')
-solution1 = mdl.solve(log_output = True)
-k = []
-for i in range(1, 6): # Maybe I should change this
-    for j in range(1, i):
-        if d[j].solution_value == i:
-            k.append(j)
-mdl.add_constraint(x[(0, k[1])]*distance[0, k[1]]<= timeInfor[k[1]][1])
-for i in range(1,6):
-    sum = 0
-    for j in range(i):
-        sum = sum + x( k[j-1],k[j] )*distance[ (k[j-1]) ][ (k[j]) ]
-    mdl.add_constraint(sum <= timeInfor[ k[i] ][1])
-solution2 = mdl.solve(log_output = True)
+
+# reach and leave the same node
+for n in nodes:
+    if n!=0 and n!=5:
+        mdl.add_constraint(mdl.sum(x[(i,j)] for i,j in arcs if j==n)==mdl.sum(x[(j,k)] for j,k in arcs if j==n), \
+                           ctname='arrive and leave the same depot')
 # The probability of Trump's Daughter tells me maybe I should try to list out all possibilites
 # Totally 24 cases
 #1 (0,1,2,3,4,5)
@@ -566,4 +563,7 @@ mdl.add_constraint(timeInfor[3][0] + x[(3,2)] * distance[3][2] + x[(2,1)] * dist
 mdl.add_constraint(timeInfor[2][0] + x[(2,1)] * distance[2][1] + x[(1,5)] * distance[1][5] <= timeInfor[5][1])
 mdl.add_constraint(timeInfor[1][0] + x[(1,5)] * distance[1][5] <= timeInfor[5][1])
 
+solution = mdl.solve(log_output = True)
+
 # Hopefully it works now.
+# None print(solution) error. Very strange!
