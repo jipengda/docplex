@@ -233,7 +233,7 @@ mdl.add_constraint(timeInfor[3][0] + x[(3,1)] * distance[3][1] + x[(1,4)] * dist
 mdl.add_constraint(timeInfor[1][0] + x[(1,4)] * distance[1][4] + x[(4,5)] * distance[4][5] <= timeInfor[5][1])
 mdl.add_constraint(timeInfor[4][0] + x[(4,5)] * distance[4][5] <= timeInfor[5][1])
 
-#10 (0,2,3,4,1,5)
+#10 (0,2,3,4,1,5) # Is something wrong with this constraint?
 #(0,2)
 mdl.add_constraint(x[(0,2)] * distance[0][2] <= timeInfor[2][1])
 #(0,2,3)
@@ -245,7 +245,7 @@ mdl.add_constraint(timeInfor[2][0] + x[(2,3)] * distance[2][3] + x[(3,4)] * dist
 mdl.add_constraint(timeInfor[3][0] + x[(3,4)] * distance[3][4] <= timeInfor[4][1])
 #(0,2,3,4,1)
 mdl.add_constraint(x[(0,2)] * distance[0][2] + x[(2,3)] * distance[2][3] + x[(3,4)] * distance[3][4] + x[(4,1)] * distance[4][1] <= timeInfor[1][1])
-mdl.add_constraint(timeInfor[2][0] + x[(2,3)] * distance[2][3] + x[(3,4)] * distance[3][4] + x[(4,1)] * distance[4][1] <= timeInfor[1][1])
+mdl.add_constraint(timeInfor[2][0] + x[(2,3)] * distance[2][3] + x[(3,4)] * distance[3][4] + x[(4,1)] * distance[4][1] <= timeInfor[1][1]) # this may cause error
 mdl.add_constraint(timeInfor[3][0] + x[(3,4)] * distance[3][4] + x[(4,1)] * distance[4][1] <= timeInfor[1][1])
 mdl.add_constraint(timeInfor[4][0] + x[(4,1)] * distance[4][1] <= timeInfor[1][1])
 #(0,2,3,4,1,5)
